@@ -1,0 +1,139 @@
+- Propose a language design for the class. Requirements:
+
+    * statically typed
+    * support type inference with optional type annotations
+    * supports higher order functions
+    * has a convenient and uniform error handling mechanism (e.g. exceptions,
+      error types, ...)
+    * supports ADTs (algebraic data types)
+    * is memory safe
+    * any other features you find interesting and/or useful
+
+- procedural and compiled
+- Type system
+  - Statically typed with local type inference and optional annotations(i.e. In Golang you can declare a variable with the var keyword or you can use :=)
+    * use the "var" keyword to declare a variable or use ":=" to infer the type
+    * Example: var x = 42 or var name: String = “hello”
+  - "Primitive" types
+    * int, float, string, bool
+  - Abstract types
+    * struct, interface, enum keywords
+    * imported packages have implementations of abstract types like arrays, maps, queues, etc.
+  - Generic Types supported
+    * Example: type Queue[T] struct { items []T }
+  - Multi-line strings
+  - ADT
+    * SUM-type ADT
+    ```
+      struct Shape {
+        Rectangle
+        Circle
+        Triangle
+      }
+    ```
+    * PRODUCT-type ADT
+    ```
+      struct Point {
+        x: int
+        y: int
+      }
+    ```
+  - Explicit casting supported 
+    * (int)x or (String)x
+- Function details
+  * Pass by value for raw types/reference for objects
+  * Function can be stored in variables or passed as arguments to other functions
+  * Function can return multiple values
+  * Functions can be easily declared with return type, type of parameters, an overloaded name, and optional type parameters
+    -> Examples:
+    ```
+    func add(a: int, b: int) int {
+      return a + b
+    }
+
+    func add(a: int, b: int, c?: int) int {
+      if c is not nil {
+        return a + b + c
+      }
+      return a + b
+    }
+
+    var add = func(a: int, b: int) int {
+      return a + b
+    }
+    add(1, 2)
+    ```
+  * structs can have methods that are callable by the point operator. This allows structs to be treated as objects, and for structs to act as types in a sense.
+  * Methods can be defined on interfaces, and can be overridden by structs that implement the interface.
+    -> example:
+    ```
+      interface Shape {
+        area() float
+      }
+      struct Rectangle {
+        width float
+      }
+      func (r Rectangle) area() float {
+        return r.width * r.height
+      }
+    ``` 
+- Higher order functions
+  * Can assign to variables, passed as arguments, returned as values from other functions
+  * Map, lambda functions, filter
+    -> Examples:
+    ```
+      map(lambda x: x * 2, [1, 2, 3, 4, 5])
+      filter(lambda x: x % 2 == 0, [1, 2, 3, 4, 5])
+      lambda x: x * 2
+
+      func generateOperation(op: string) func(int, int) int {
+        if op == "add" {
+          return func(x: int, y: int) int {
+            return x + y
+          }
+        } else if op == "sub" {
+          return func(x: int, y: int) int {
+            return x - y
+          }
+        }
+      }
+    ```
+- Memory safety
+  * Bounds checking - program will panic if the index is within the bounds of the array
+  * No pointer arithmetic
+  * Cannot call methods on nils
+  * Garbage collection
+- Error handling with error codes
+  * Examples:
+    ```
+    func add(a: int, b: int) (int, error) {
+      if a < 0 || b < 0 {
+        return 0, "a and b must be positive"
+      }
+      return a + b, nil
+    }
+
+    val, err = add(1, 2)
+    ...
+    ```
+- Other features: closures
+
+- What programming languages did you base or design on? try to highlight the
+  similarities/differences
+  - I based my language on the Golang programming language, with some inspiration from Python and Java.
+  - Similarities:
+    * Go: Statically typed with local type inference and optional annotations, Generic Types supported, Multi-line strings, ADT, Explicit casting supported, Function details, Higher order functions, Memory safety, Bounds checking, Garbage collection, Error handling with error codes
+    * Java: Strong statically typed, Concept of primitive vs abstract types, Generic Types supported, Multi-line strings, ADT, Explicit casting supported, Function details, Higher order functions, Memory safety, Bounds checking, Garbage collection, Error handling with exceptions, Data Structure Packages/Classes
+    * Python: optional parameters, allows type annotations, simple syntax, lambda functions
+  - Differences:
+    * Go: True ADT not present in Go, optional parameters, interfaces not present in Go
+    * Python: Has robust type system, error checking system, static types caught at compile time, has no interfaces
+    * Java: has no optional parameters, is more verbose
+
+Please make sure you cite your references (books, web pages, conversations, LLMs, ...)
+- https://www.mcmillen.dev/language_checklist.html
+- https://timothya.com/pdfs/crafting-interpreters.pdf 
+- https://www.reddit.com/r/ProgrammingLanguages/comments/xh1e2t/a_roadmap_to_design_programming_languages/ 
+- https://go.dev/blog/error-handling-and-go 
+- https://en.wikipedia.org/wiki/Algebraic_data_type
+- https://joeduffyblog.com/2016/02/07/the-error-model/ 
