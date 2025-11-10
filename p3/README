@@ -1,0 +1,50 @@
+Due: 10/20/2025
+
+Given starter code:
+
+- A proposed parser-combinator library (ParserCombinators.hs)
+
+    The standard library has one of those but it is useful to learn how
+    those things are put together
+
+- A proposed lexer (FunLexer.hs)
+
+- A proposed concrete parser (FunSyntax.hs)
+
+- An proposed lexer/parser driver Main.hs
+
+- A proposed AST (Term.hs)
+
+- A proposed small-step spec (Small.hs)
+
+- A proposed interpreter
+
+Your assignment:
+
+- understand the sample code
+- combine your language proposal from p1 with your experience so far to
+  propose a new language design.
+- Fully specify your design using the small-step framework and the parser
+  combinators.
+- Feel free to change/enhance the proposed frameworks
+- Submit pull requests with the proposed changes
+- Those proposals will be the basis for our future work.
+
+Language features:
+
+- Supports integers, booleans, and strings
+- Dynamically typed
+- Lexically scoped
+- Supports functions
+- Supports basic arithmetic and logic
+- Supports basic control structures (if statements, while loops, ...)
+- Can do I/O
+- The interpreter never crashes
+
+Point distribution:
+
+- Design 40%
+- Implementation 40%
+- Contributing by making and/or reviewing pull requests 20%
+
+

@@ -1,0 +1,39 @@
+- What changes did you propose/implement to:
+
+    * language syntax
+        - added support for binary operations: +, -, *, /, ==, <, >, <=, >=, !=
+        - added support for lexing boolean operations: &&, ||, !
+    * language semantics
+        - added support for file parsing into the sytax loosely from p2a
+    * the parser-combinator library
+    * the small-step framework
+    * the small-step spec
+        - Supports integers, booleans(true, false), and strings (single quotes) 
+            * Lists in the form of tuples
+                * NewTuple, GetTuple(gets the value at the index), SetTuple (sets the value at the index)
+                * currently only sets a single index at a time
+                * tuples are expressed as [value1, value2, value3, ...]. accessed as tuple[index], set as tuple[index] = value
+                * index out of bounds is an error
+        - Dynamically typed 
+        - Lexically scoped
+            * "Linked list" structure of scopes (each scope has a pointer to the parent scope)
+            * function calls push a new scope
+            * closures capture the arguments as local scope
+        - Supports functions
+            * supports functions with one or more arguments
+                * arguments are evaluated before being passed to the function, pass-by-value
+                * arguments must be valid
+            * supports functions with no arguments
+        - Supports basic arithmetic and logic Y
+            * Arithmetic operations: +, -, *, /, %
+            * Boolean operations: &&, ||, !
+            * Comparison operations: ==, <, >
+        - Supports basic control structures (if statements, while loops, ...)
+            * supports try-catch statements with any error kind
+            * supports try-catch statements with specific error kinds (type, input, variable not found, arguments)
+        - Can do I/O
+            * supports print statements
+        - The interpreter never crashes
+
+
+
