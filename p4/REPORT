@@ -1,0 +1,147 @@
+state the operational semantics of your type system?
+
+"TypeReader" monadic pattern where type checking is performed through functions that take a type environment (TypeContext) and return either a type error or a TypeSignature.
+
+- Type Environment
+    - "TypeContext": map from variable names (String) to their types (TypeSignature)
+    - The environment passed through the type checking process
+    - Let bindings extend the environment
+    - Lookup variables in environment when referenced to check their types
+
+- Type System Rules
+
+- Basic Types
+    - Integer literals -> `TInt`
+    - Boolean literals -> `TBool`
+        - booleans can also be interpreted as integers (0 for false, 1(or more) for truthy cases)
+    - String literals -> `TString`
+    - Literal types (`TLiteralInt`, `TLiteralBool`, `TLiteralString`) are also supported for more precise typing
+    - Literal types can also be sum types (e.g., `let x: TLiteralInt 5 | TLiteralString "hello" = "hello"`)
+
+- Variables
+    - Variables are looked up in the type environment
+    - If a variable has an annotation, the annotation takes precedence
+    - If no annotation exists, the type is retrieved from the environment
+    - Fallback to `TUnknown` if variable is not found
+
+- Let Bindings
+    - Type the RHS expression in the current environment and the type of a let binding is the RHS type
+    - If the variable has an annotation:
+        - Check that RHS type matches the annotation (with compatibility rules)
+        - Allow literal type compatibility (e.g., `TLiteralInt n` compatible with `TInt`)
+        - Allow sum type compatibility (RHS type must be in the sum)
+        - Allows polymorphic parameters to accept any type
+    - If no annotation (`TUnknown`), use the RHS type
+
+- Type Combination (`combine`)
+    - `combine TUnknown _ = TUnknown` (unknown propagates)
+    - `combine _ TUnknown = TUnknown`
+    - `combine t1 t2 | t1 == t2 = t1` (identical types collapse)
+    - `combine t1 t2 = TSum [t1, t2]` (different types form a sum type)
+
+- Binary Operations
+    Type checking rules:
+    - Arithmetic (`+`, `-`, `*`, `/`, `%`, `**`): Both operands must be `TInt` or int-compatible (including literal ints and sum types containing ints). Result: `TInt`
+    - String operations: `+` with two strings -> `TString`; `*` with string and int -> `TString` (repetition)
+    - Comparison (`<`, `>`, `<=`, `>=`): Both operands must be int-compatible. Result: `TBool`
+    - Equality (`==`, `!=`): Operands must have the same type. Result: `TBool`
+    - Logical (`&&`, `||`, `^`): Both operands must be `TBool` or bool-compatible. Result: `TBool`
+    - Type variables (`Poly`): Operations with type variables are allowed, assuming int/bool at call site
+
+- Unary Operations
+    - `Not`: Operand must be `TBool` or bool-compatible(includes ints as booleans). Result: `TBool`
+    - `Neg`: Operand must be `TInt` or int-compatible. Result: `TInt`
+
+- Control Flow
+
+- If expressions:
+    - Condition must be `TBool`, `TInt`, or a polymorphic type (int/bool used as truthy/falsy)
+    - Constant folding: if condition is a constant boolean or integer literal OR existing variable, only type the taken branch
+    - Poly types are allowed, assuming int/bool at call site
+    - Otherwise, combine types from both branches: `combine thenType elseType`
+
+- While loops:
+    - Condition must be `TBool`, `TInt`, or polymorphic type
+    - Result type: `combine TUnit bodyType`
+
+- Sequencing (`Seq`):
+    - Type the first expression
+    - If it's a `Let` binding, extend the environment with the bound variable
+    - Return the type of the second expression
+
+- Tuples
+    - Tuple creation: Type each element, return `TTuple [elemTypes]`
+    - Tuple indexing:
+        - Index must be `TInt` or literal int
+        - Base must be `TTuple types`
+        - If index is a constant literal `n`: return `types !! n` (with bounds checking)
+        - If index is non-constant: return `TSum types` (all possible element types)
+        - For sum types containing tuples, index each tuple type and combine results
+
+- Functions
+    - Function definition (`FunF`):
+        - Create a new environment with parameter bindings
+        - Type the function body in this extended environment
+        - Normalize the body type (remove placeholder `Poly "unknown_ret"` from sum types)
+        - Return `TFun paramTypes normalizedBodyType`
+
+    - Function application (`ApplyFunF`):
+        - Type the function expression (must be `TFun` or `Poly`)
+        - Type all argument expressions
+        - Full application (args == params):
+            - Check each argument type matches its parameter type (with compatibility rules)
+            - Support literal type matching (e.g., `TLiteralInt 5` matches parameter `TLiteralInt 5`)
+            - Support sum type matching (argument type must be in parameter sum type)
+            - Instantiate polymorphic return type by substituting type variables with argument types
+            - If parameter types are polymorphic, type checking in the body ensures that argument types are consistent (multiple parameters are polymorphic type T, then at function call site, ALL arguments must be of type T)
+            - Return the instantiated return type
+        - Partial application (args < params):
+            - Check provided arguments match their parameters
+            - Return `TFun remainingParams instantiatedRetType`
+        - Over-application (args > params): Type error
+        - Polymorphic functions (`Poly`): Return `Poly (name ++ "_ret")` to preserve type information
+        - Unknown functions** (`TUnknown`): Return `Poly "unknown_ret"`
+            - for recursive functions, this `Poly "unknown_ret"` return type for the non-base case type is not included in the final return type (See type normalization)
+
+- Type Compatibility Rules
+
+- Literal type compatibility:
+    - `TLiteralInt n` is compatible with `TInt`
+    - `TLiteralString s` is compatible with `TString`
+    - `TLiteralBool b` is compatible with `TBool`
+
+- Sum type compatibility:
+    - A type `t` is compatible with `TSum types` if `t` is in `types` or matches any literal type in the sum
+    - Sum types are compared set-wise (order-independent)
+
+- Polymorphic type compatibility:
+    - `Poly name` and `TUnknown` accept any type
+    - Used for unannotated function parameters and flexible typing
+
+- Function type compatibility:
+    - Parameter types must match exactly
+    - Return type can be `TUnknown` in annotation (allows any return type)
+
+- Type Normalization
+    - Remove placeholder `Poly "unknown_ret"` from sum types when concrete types are present
+    - Collapse sum types to a single type if all types are identical
+    - Recursively normalize nested types (functions, tuples, dictionaries)
+
+- Other Constructs
+    - Write: Returns the type of its argument
+    - Read: Returns `TInt`
+    - Increment/Decrement (`++`, `--`): Return `TInt`
+    - Try/Catch: Combine types from try and catch blocks
+    - Block: Returns the type of its body
+    - Skip: Returns `TUnit`
+    - Dictionary indexing: Returns `TUnknown` (not fully implemented)
+
+- Type Inference Strategy
+- (bottom up) For expressions, infer types from sub-expressions
+- (top down) For annotations, check that inferred types match expected types
+- Environment extension: Let bindings and function parameters extend the type environment for subsequent expressions
+
+- Error Handling (Very basic - with more time would implement better error Types)
+- Type errors return `Left String` with descriptive error messages
+- Successful type checking returns `Right TypeSignature`
+- Errors include context about expected vs. actual types and operation locations

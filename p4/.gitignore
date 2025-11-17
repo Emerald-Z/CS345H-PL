@@ -1,0 +1,18 @@
+*.debug
+*.out
+*.result
+*.diff
+*.err
+test.stderr
+/dist-newstyle/
+*.cabal
+.stack-work/
+*.hi
+*.o
+
+# Nix
+result
+result-*
+
+# direnv
+.direnv/

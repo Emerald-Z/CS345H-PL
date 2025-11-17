@@ -1,0 +1,92 @@
+
+Due:
+    test: 11/12/2025
+    code: 11/14/2025
+
+Assignment:
+
+     - update the typer (initially in Typer.hs) in order to implement our new
+       typing rules.
+
+     - submit a private test case (<your csid>.ok, <your csid>.fun) in your private
+       repo
+
+     - submit as many public test cases as you want by making a pull request
+
+The public repo:
+
+     - contains the initial spec (FunSyntax.hs and Small.hs)
+
+     - contains the test harness in Haskell
+
+     - contains the shared pool of unit tests (in test) and end end-to-end
+       tests (in *.fun, *.ok)
+
+     - you can always submit pull requests:
+           - tests will be easy to merge
+           - spec changes will be limited to significant bug and/or spec
+             clarifications and would require consensus
+
+Your private repo:
+
+     - your implementation should go there
+
+
+     - your private test case <csid>.fun <csid>.ok should go here
+
+     - you are free to choose your implementation language and specifics
+       provided that:
+
+          (1) you adhere to the spec in the common repo
+          (2) you adhere to the naming conventions for end-to-end tests
+          (3) you adhere to the Makefile interface
+
+The typing rules:
+
+     - the language now has type ascription:
+
+         <term> :: <type>
+
+       states that the <term> has the given <type>.
+
+     - the type language is defined in FunSyntax (typeSignature))
+
+     - you need to extend the type language in order to allow literal
+       types of integers, bools, and strings.
+
+     - you need to support type checking and type inference. For example:
+
+          let x:int = "x"    -- fails to type check
+          let x = "x"        -- infers the type of x to be 'str'
+          let a = if b then 10 else 20 -- infers the type of a to be int
+                                          and asserts/infers that the type
+                                          of b is bool
+          let a = if b then 10 else "x"   infers the type of a to be
+                                           int | str
+
+      - functions are polymorphic in their argument types and return
+        value:
+
+            - missing type ascriptions introduce new free type variables
+            - type ascriptions with undefined type names introduce type
+              variables with those names.
+
+         Example:
+
+             f(a, b) ...
+
+           is the same as
+
+             f(a: t1, b: t2) ...
+      
+          where t1 and t2 are fresh type variable names
+
+        - type checking for polymorphic functions is done at the call site
+
+          
+
+
+
+
+
+
