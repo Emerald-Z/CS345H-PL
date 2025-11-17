@@ -52,6 +52,29 @@ substituteType varName replacement = go
     go (TDictionary valType) = TDictionary (go valType)
     go t = t
 
+-- Type compatibility helpers (shared across binary ops, unary ops, and function application)
+isIntCompatible :: TypeSignature -> Bool
+isIntCompatible TInt = True
+isIntCompatible (TLiteralInt _) = True
+isIntCompatible (TSum ts) = all (\t -> case t of TInt -> True; TLiteralInt _ -> True; _ -> False) ts
+isIntCompatible _ = False
+
+isStringCompatible :: TypeSignature -> Bool
+isStringCompatible TString = True
+isStringCompatible (TLiteralString _) = True
+isStringCompatible (TSum ts) = all (\t -> case t of TString -> True; TLiteralString _ -> True; _ -> False) ts
+isStringCompatible _ = False
+
+isBoolCompatible :: TypeSignature -> Bool
+isBoolCompatible TBool = True
+isBoolCompatible (TLiteralBool _) = True
+isBoolCompatible (TSum ts) = all (\t -> case t of TBool -> True; TLiteralBool _ -> True; _ -> False) ts
+isBoolCompatible _ = False
+
+-- Bool compatible that also allows ints (for binary operations where ints can be truthy/falsy)
+isBoolCompatibleWithInt :: TypeSignature -> Bool
+isBoolCompatibleWithInt t = isBoolCompatible t || isIntCompatible t
+
 -- (-->) :: Bool -> TypeSignature -> TypeSignature
 -- (-->) True t = t
 -- (-->) False _ = TUnknown
@@ -159,26 +182,10 @@ typerPure term = (para go term) M.empty
           isTypeVar _ = False
           -- If either operand is a type variable, allow the operation (type checking happens at call site)
           hasTypeVar = isTypeVar t1Type || isTypeVar t2Type
-          -- Check if a type is compatible with int (TInt or sum of literal ints)
-          isIntCompatible TInt = True
-          isIntCompatible (TLiteralInt _) = True
-          isIntCompatible (TSum ts) = all (\t -> case t of TInt -> True; TLiteralInt _ -> True; _ -> False) ts
-          isIntCompatible _ = False
           -- Check if both operands are int-compatible
           bothInt = isIntCompatible t1Type && isIntCompatible t2Type
-          -- Check if a type is compatible with string (TString or literal strings)
-          isStringCompatible TString = True
-          isStringCompatible (TLiteralString _) = True
-          isStringCompatible (TSum ts) = all (\t -> case t of TString -> True; TLiteralString _ -> True; _ -> False) ts
-          isStringCompatible _ = False
-          -- check if boolean compatible
-          isBoolCompatible TBool = True
-          isBoolCompatible (TLiteralBool _) = True
-          isBoolCompatible (TSum ts) = all (\t -> case t of TBool -> True; TLiteralBool _ -> True; _ -> False) ts
-          isBoolCompatible (TInt) = True
-          isBoolCompatible _ = False
-          -- check if both operands are boolean-compatible
-          bothBool = isBoolCompatible t1Type && isBoolCompatible t2Type
+          -- check if both operands are boolean-compatible (including ints for truthy/falsy)
+          bothBool = isBoolCompatibleWithInt t1Type && isBoolCompatibleWithInt t2Type
           -- Check if both operands are string-compatible
           bothString = isStringCompatible t1Type && isStringCompatible t2Type
           -- Check if one operand is string and the other is int
@@ -252,10 +259,6 @@ typerPure term = (para go term) M.empty
           isTypeVar TUnknown = True
           isTypeVar _ = False
           hasTypeVar = isTypeVar tType
-          -- Check if a type is compatible with int (TInt or sum of literal ints)
-          isIntCompatible TInt = True
-          isIntCompatible (TSum ts) = all (\t -> case t of TInt -> True; TLiteralInt _ -> True; _ -> False) ts
-          isIntCompatible _ = False
       case op of
         Not | tType == TBool -> Right TBool
         Not | hasTypeVar -> Right TBool  -- Allow if type variable present
@@ -416,21 +419,6 @@ typerPure term = (para go term) M.empty
           isTypeVar (Poly _) = True
           isTypeVar TUnknown = True
           isTypeVar _ = False
-          -- Check if a type is compatible with int (TInt or literal ints)
-          isIntCompatible TInt = True
-          isIntCompatible (TLiteralInt _) = True
-          isIntCompatible (TSum ts) = all (\t -> case t of TInt -> True; TLiteralInt _ -> True; _ -> False) ts
-          isIntCompatible _ = False
-          -- Check if a type is compatible with string (TString or literal strings)
-          isStringCompatible TString = True
-          isStringCompatible (TLiteralString _) = True
-          isStringCompatible (TSum ts) = all (\t -> case t of TString -> True; TLiteralString _ -> True; _ -> False) ts
-          isStringCompatible _ = False
-          -- Check if a type is compatible with bool (TBool or literal bools)
-          isBoolCompatible TBool = True
-          isBoolCompatible (TLiteralBool _) = True
-          isBoolCompatible (TSum ts) = all (\t -> case t of TBool -> True; TLiteralBool _ -> True; _ -> False) ts
-          isBoolCompatible _ = False
           -- Check argument type against parameter type
           checkArgType ((paramType, argType), argTerm) =
             if paramType == argType || isTypeVar paramType
