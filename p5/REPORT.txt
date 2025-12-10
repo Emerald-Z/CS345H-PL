@@ -1,0 +1,23 @@
+Why do we need loop invariants?
+- loop invariants are needed to show that for each iteration of the loop, the conditions before
+during, and after the loop are still and always true. It helps reason about initial conditions and connect it to
+the termination conditions of the loop so that every step is correct. They also ensure that the loop is moving closer
+to the end goal. 
+
+Why do we streets weakest pre-conditions more than strongest port-conditions?
+- using weakest preconditions are calculate "backwards" from postcondition to precondition. Strongest postconditions are calculated
+"forwards" and are not always unique and can be harder to work with. WP is also less computationally expensive to compute. It is also
+the least restrictive condition under which an algorithm can finish and satisfy the postcondition.
+
+What to tools did you use to implement your verifier?
+- The verifier is implemented in Dafny and using the Z3 prover.
+
+Read about Boogie and z3 (in our context) and explain the difference in your words
+- Z3 is an SMT solver from Microsoft Research. Z3 is an efficient SMT solver for logical formulas with specialized algorithms for solving
+background theories. Essentially, it takes in as input simple formulas that contain symbols with pre-defined meanings which are 
+called theories. 
+- Boogie is an IVL (Intermediate Verification Language) that is used to describe the logic of a program. 
+It is a high-level language that is used to describe the logic of a program, intened as a layer to build program verifiers for other languages. 
+The Boogie tool accepts the Boogie language as input and generates verification conditions that are the PASSED to a SMT solver like Z3 to compute.
+Boogie can translate high-level code into a formal representation which are verification conditions. So you could say that Boogie
+"uses" Z3 to check if generated verification conditions are satisfiable.
